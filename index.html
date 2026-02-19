@@ -8,26 +8,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            color-scheme: dark;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
+            background-color: #020617;
             color: #f8fafc;
             margin: 0;
-            overflow-x: hidden;
+            width: 400px; /* Fixed width for extension popup */
+            height: 600px; /* Fixed height for extension popup */
+            overflow: hidden;
+        }
+        #root {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e293b;
+            background: #0f172a;
         }
         ::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 4px;
+            background: #334155;
+            border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+            background: #475569;
         }
     </style>
 <script type="importmap">
@@ -37,12 +47,14 @@
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "jszip": "https://esm.sh/jszip@^3.10.1"
   }
 }
 </script>
 </head>
 <body>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>

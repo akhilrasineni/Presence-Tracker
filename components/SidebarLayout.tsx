@@ -5,16 +5,19 @@ import {
   PanelRightClose,
   CalendarDays,
   Coffee,
-  Bell
+  Bell,
+  Sparkles,
+  Wand2
 } from 'lucide-react';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
-  activeTab: 'calendar' | 'reminders';
-  onTabChange: (tab: 'calendar' | 'reminders') => void;
+  activeTab: 'calendar' | 'reminders' | 'ai';
+  onTabChange: (tab: 'calendar' | 'reminders' | 'ai') => void;
+  onBuild: () => void;
 }
 
-const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTabChange }) => {
+const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTabChange, onBuild }) => {
   const triggerManualBreak = () => {
     window.dispatchEvent(new CustomEvent('manual-break-trigger'));
   };
@@ -37,14 +40,29 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
 
           <button 
             onClick={() => onTabChange('reminders')}
-            className={`p-3 rounded-xl transition-all ${activeTab === 'reminders' ? 'bg-slate-800 text-indigo-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`p-3 rounded-xl transition-all ${activeTab === 'reminders' ? 'bg-indigo-800 text-indigo-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'}`}
           >
             <Bell size={20} />
+          </button>
+
+          <button 
+            onClick={() => onTabChange('ai')}
+            className={`p-3 rounded-xl transition-all ${activeTab === 'ai' ? 'bg-purple-800/50 text-purple-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <Sparkles size={20} />
           </button>
         </div>
 
         <div className="flex-grow" />
         
+        <button 
+          onClick={onBuild}
+          title="Build Extension for Chrome"
+          className="p-3 mb-4 rounded-xl text-blue-400 hover:bg-blue-600/20 transition-all group animate-pulse"
+        >
+          <Wand2 size={20} />
+        </button>
+
         <button 
           onClick={triggerManualBreak}
           title="Force a break"
@@ -59,16 +77,16 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
         <header className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/30 backdrop-blur-sm">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm tracking-widest uppercase text-slate-400">
-              {activeTab === 'calendar' ? 'Presence' : 'Reminders'}
+              {activeTab === 'calendar' ? 'Presence' : activeTab === 'reminders' ? 'Reminders' : 'AI Assistant'}
             </span>
-            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">v1.1</span>
+            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">v1.2</span>
           </div>
           <div className="flex items-center gap-3">
             <button 
-              onClick={triggerManualBreak}
-              className="flex items-center gap-1.5 px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded text-[10px] font-bold transition-all uppercase tracking-tighter"
+              onClick={onBuild}
+              className="hidden sm:flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded text-[10px] font-bold transition-all uppercase tracking-tighter"
             >
-              <Coffee size={12} /> Break
+              <Wand2 size={12} /> Install
             </button>
             <button className="text-slate-500 hover:text-slate-300 transition-colors">
               <PanelRightClose size={18} />

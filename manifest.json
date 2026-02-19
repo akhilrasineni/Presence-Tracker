@@ -2,16 +2,22 @@
 {
   "manifest_version": 3,
   "name": "Presence & Break Tracker",
-  "version": "1.1.0",
-  "description": "Track office presence, set task reminders, and get funny break alerts.",
+  "version": "1.2.0",
+  "description": "Professional presence tracking, task reminders, and health alerts powered by Gemini AI.",
   "permissions": [
     "storage",
     "alarms",
-    "notifications"
+    "notifications",
+    "activeTab",
+    "scripting"
   ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "index.html",
-    "default_title": "Open Presence Tracker"
+    "default_title": "Presence Tracker"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self' https://cdn.tailwindcss.com https://esm.sh; object-src 'self'"

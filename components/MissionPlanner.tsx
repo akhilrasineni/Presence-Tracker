@@ -23,10 +23,11 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ onPlanConfirmed, existi
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // Simulation Epoch: Feb 15, 2026
-  const YEAR = 2026;
-  const MONTH = 1; // February
-  const SIM_TODAY_DAY = 15;
+  // Real-time date logic
+  const now = new Date();
+  const YEAR = now.getFullYear();
+  const MONTH = now.getMonth();
+  const SIM_TODAY_DAY = now.getDate();
 
   // Derive which days are currently "planned" in the upcoming week window
   const currentPlannedDayIds = useMemo(() => {
@@ -39,7 +40,7 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ onPlanConfirmed, existi
         return rec.status === 'planned' && d >= simToday && d <= simNextWeek;
       })
       .map(([dateStr]) => new Date(dateStr).getDay());
-  }, [existingRecords]);
+  }, [existingRecords, YEAR, MONTH, SIM_TODAY_DAY]);
 
   // Sync internal selection with records
   useEffect(() => {
@@ -66,9 +67,13 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ onPlanConfirmed, existi
     }
     
     const targetDate = new Date(YEAR, MONTH, SIM_TODAY_DAY + daysToAdd);
-    if (targetDate.getMonth() !== MONTH) {
-      targetDate.setDate(28); 
+    // Boundary check for month end
+    const lastDayOfMonth = new Date(YEAR, MONTH + 1, 0).getDate();
+    if (targetDate.getDate() > lastDayOfMonth) {
+      targetDate.setMonth(MONTH + 1);
+      targetDate.setDate(targetDate.getDate() - lastDayOfMonth);
     }
+
     return targetDate.toISOString().split('T')[0];
   };
 

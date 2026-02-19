@@ -10,6 +10,11 @@ interface CalendarViewProps {
   setGoal: (val: number) => void;
 }
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
 const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, setGoal }) => {
   const [showFullCalendar, setShowFullCalendar] = useState(false);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -17,15 +22,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
   const [tempGoal, setTempGoal] = useState(goal);
   const [customReason, setCustomReason] = useState('');
 
-  // Simulation settings for Feb 2026 (Epoch Sync: Feb 15)
-  const YEAR = 2026;
-  const MONTH = 1; // February (0-indexed)
-  const daysInMonth = 28;
+  // Real-time date settings
+  const now = new Date();
+  const YEAR = now.getFullYear();
+  const MONTH = now.getMonth();
+  const today = now.getDate();
+  const daysInMonth = new Date(YEAR, MONTH + 1, 0).getDate();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const today = 15; // Anchor to Feb 15, 2026
 
   const getDayRecord = (day: number): PresenceRecord | null => {
-    const dateStr = `${YEAR}-02-${String(day).padStart(2, '0')}`;
+    const dateStr = `${YEAR}-${String(MONTH + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return records[dateStr] || null;
   };
 
@@ -49,14 +55,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
   }, [records, days, goal]);
 
   const hasPlannedDays = useMemo(() => {
-    // Explicitly cast Object.values to PresenceRecord[] to avoid 'unknown' property access errors
     return (Object.values(records) as PresenceRecord[]).some(r => r.status === 'planned');
   }, [records]);
 
   const handleStatusSelect = (status: PresenceStatus) => {
     if (selectedDay) {
       onUpdate({
-        date: `${YEAR}-02-${String(selectedDay).padStart(2, '0')}`,
+        date: `${YEAR}-${String(MONTH + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`,
         status,
         reason: status === 'other' ? customReason : undefined
       });
@@ -99,7 +104,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
                 <h3 className="text-xl font-black text-white mb-1">Office Presence</h3>
                 <div className="flex items-center gap-3">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                    <CalendarIcon size={12} /> February 2026
+                    <CalendarIcon size={12} /> {MONTH_NAMES[MONTH]} {YEAR}
                   </p>
                   <div className="w-1 h-1 rounded-full bg-slate-700" />
                   <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
@@ -195,7 +200,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
         <div className="fixed inset-0 z-[500] bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
           <div className="bg-[#1e293b] border border-slate-700 w-full max-w-[320px] rounded-[2rem] p-6 shadow-2xl animate-in zoom-in-95 duration-200">
              <div className="flex justify-between items-center mb-5">
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feb {selectedDay} Presence</h3>
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{MONTH_NAMES[MONTH].slice(0,3)} {selectedDay} Presence</h3>
               <button onClick={() => { setSelectedDay(null); setCustomReason(''); }} className="text-slate-500 hover:text-white">
                 <X size={16} />
               </button>

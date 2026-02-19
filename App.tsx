@@ -36,10 +36,11 @@ const App: React.FC = () => {
   const [aiAnalysis, setAiAnalysis] = useState<AnalysisResult | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  // Simulation constants for strategy sync logic
-  const SIM_YEAR = 2026;
-  const SIM_MONTH = 1; // Feb
-  const SIM_TODAY_DAY = 15;
+  // Real-time date logic
+  const now = new Date();
+  const SIM_YEAR = now.getFullYear();
+  const SIM_MONTH = now.getMonth();
+  const SIM_TODAY_DAY = now.getDate();
 
   // Initialize Data
   useEffect(() => {
@@ -84,7 +85,7 @@ const App: React.FC = () => {
     const nextRecords = { ...records };
     const newReminders = [...reminders];
 
-    // 1. Clear ALL existing "planned" records in the upcoming week window to allow deselecting
+    // 1. Clear ALL existing "planned" records in the upcoming week window
     const simToday = new Date(SIM_YEAR, SIM_MONTH, SIM_TODAY_DAY);
     const simNextWeek = new Date(SIM_YEAR, SIM_MONTH, SIM_TODAY_DAY + 7);
     

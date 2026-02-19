@@ -4,28 +4,43 @@ import {
   Zap,
   PanelRightClose,
   CalendarDays,
-  Coffee
+  Coffee,
+  Bell
 } from 'lucide-react';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
+  activeTab: 'calendar' | 'reminders';
+  onTabChange: (tab: 'calendar' | 'reminders') => void;
 }
 
-const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
+const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTabChange }) => {
   const triggerManualBreak = () => {
     window.dispatchEvent(new CustomEvent('manual-break-trigger'));
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-200 overflow-hidden border-l border-slate-800 shadow-2xl">
-      {/* Mini Sidebar (Branding only) */}
-      <nav className="w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-900/50 backdrop-blur-md">
+    <div className="flex h-full bg-slate-950 text-slate-200 overflow-hidden border-l border-slate-800 shadow-2xl">
+      {/* Mini Sidebar */}
+      <nav className="w-16 border-r border-slate-800 flex flex-col items-center py-6 bg-slate-900/50 backdrop-blur-md z-10">
         <div className="p-2 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/20 mb-8">
           <Zap size={24} className="text-white fill-current" />
         </div>
         
-        <div className="p-3 rounded-xl bg-slate-800 text-blue-400 shadow-inner shadow-blue-500/10">
-          <CalendarDays size={20} />
+        <div className="flex flex-col gap-4">
+          <button 
+            onClick={() => onTabChange('calendar')}
+            className={`p-3 rounded-xl transition-all ${activeTab === 'calendar' ? 'bg-slate-800 text-blue-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <CalendarDays size={20} />
+          </button>
+
+          <button 
+            onClick={() => onTabChange('reminders')}
+            className={`p-3 rounded-xl transition-all ${activeTab === 'reminders' ? 'bg-slate-800 text-indigo-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'}`}
+          >
+            <Bell size={20} />
+          </button>
         </div>
 
         <div className="flex-grow" />
@@ -40,12 +55,13 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
+      <main className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-14 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/30 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-sm tracking-widest uppercase text-slate-400">Presence Tracker</span>
-            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">v1.0</span>
+            <span className="font-bold text-sm tracking-widest uppercase text-slate-400">
+              {activeTab === 'calendar' ? 'Presence' : 'Reminders'}
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">v1.1</span>
           </div>
           <div className="flex items-center gap-3">
             <button 
@@ -60,7 +76,6 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
           {children}
         </div>

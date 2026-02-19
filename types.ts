@@ -7,6 +7,14 @@ export interface PresenceRecord {
   reason?: string;
 }
 
+export interface Reminder {
+  id: string;
+  title: string;
+  dateTime: string; // ISO string
+  completed: boolean;
+  notified: boolean;
+}
+
 // Added PageContent interface to support page analysis features
 export interface PageContent {
   title: string;

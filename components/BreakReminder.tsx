@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Coffee, GlassWater, Accessibility, X, Ghost, Zap } from 'lucide-react';
+import { Coffee, GlassWater, Accessibility, X, Ghost, Zap, Wind } from 'lucide-react';
 
 const BREAK_MESSAGES = [
   { text: "Human.exe has stopped responding. Please stand up and perform a wiggle dance to restart.", icon: Ghost },
   { text: "Legend says if you sit here for another hour, you'll become part of the ergonomic mesh. Run!", icon: Accessibility },
-  { text: "Your eyes are filing for a divorce. Go look at a real tree (or a wall) for 5 minutes.", icon: Zap },
+  { text: "Your eyes are filing for a divorce. Go look at a real tree (or a wall) for 5 minutes.", icon: Wind },
   { text: "Hydrate or Diedrate! (Just kidding, but seriously, your kidneys are parched).", icon: GlassWater },
   { text: "The coffee machine is whispering your name. Go check if it's talking to anyone else.", icon: Coffee },
   { text: "Your back is currently shaped like a shrimp. Un-shrimp yourself now.", icon: Accessibility },
@@ -36,7 +36,6 @@ const BreakReminder: React.FC = () => {
       }
     }, 60000); // Check every minute
 
-    // Manual trigger listener
     const handleManualTrigger = () => {
       triggerBreak();
     };
@@ -59,37 +58,37 @@ const BreakReminder: React.FC = () => {
   const Icon = currentMessage.icon;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-[340px] z-[100] animate-in slide-in-from-bottom-8 duration-500 ease-out">
-      <div className="bg-slate-900/90 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(59,130,246,0.2)] relative overflow-hidden">
-        {/* Background glow effect */}
-        <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full" />
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-[340px] z-[100] animate-in slide-in-from-bottom-12 fade-in duration-500 ease-out">
+      <div className="bg-slate-900/95 backdrop-blur-2xl border border-blue-500/40 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_30px_rgba(59,130,246,0.3)] relative overflow-hidden">
+        {/* Animated background glow */}
+        <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/20 blur-[60px] rounded-full animate-pulse" />
         
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/20 text-blue-400 animate-pulse">
-            <Icon size={24} />
+          <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center border border-white/20 text-white shadow-lg animate-bounce duration-1000">
+            <Icon size={28} />
           </div>
           
           <div className="flex-1 space-y-1">
-            <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.2em]">Mandatory Interruption</h4>
-            <p className="text-sm text-slate-100 font-medium leading-relaxed">
+            <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em]">Health Intercept</h4>
+            <p className="text-sm text-slate-100 font-bold leading-relaxed">
               {currentMessage.text}
             </p>
           </div>
 
           <button 
             onClick={handleDismiss}
-            className="text-slate-500 hover:text-white transition-colors"
+            className="text-slate-500 hover:text-white transition-colors p-1"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
-        <div className="mt-5 flex gap-2">
+        <div className="mt-6 flex gap-2">
           <button 
             onClick={handleDismiss}
-            className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95 active:bg-blue-700"
           >
-            I'm Moving! (Maybe)
+            I'm Responding!
           </button>
         </div>
       </div>

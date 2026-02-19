@@ -1,5 +1,5 @@
 
-export type PresenceStatus = 'office' | 'remote' | 'leave' | 'weekend' | 'holiday';
+export type PresenceStatus = 'office' | 'remote' | 'leave' | 'weekend' | 'holiday' | 'sick' | 'other' | 'planned';
 
 export interface PresenceRecord {
   date: string; // ISO string YYYY-MM-DD
@@ -13,16 +13,17 @@ export interface Reminder {
   dateTime: string; // ISO string
   completed: boolean;
   notified: boolean;
+  type?: 'standard' | 'system';
 }
 
-// Added PageContent interface to support page analysis features
+// Added PageContent interface to support browser tab simulation data
 export interface PageContent {
   title: string;
   url: string;
   body: string;
 }
 
-// Added AnalysisResult interface to match the Gemini API JSON response schema
+// Added AnalysisResult interface for Gemini page analysis response
 export interface AnalysisResult {
   summary: string;
   keyPoints: string[];
@@ -31,7 +32,7 @@ export interface AnalysisResult {
   topics: string[];
 }
 
-// Added ChatMessage interface for managing conversation state in the sidebar
+// Added ChatMessage interface for the AI chat sidebar
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AnalysisResult, PageContent } from '../types';
-import { Clock, BarChart3, Tag, MessageCircle, ExternalLink, Sparkles, Loader2, Globe } from 'lucide-react';
+import { Clock, BarChart3, Tag, MessageCircle, Globe, Sparkles, Loader2, Info } from 'lucide-react';
 
 interface SummaryViewProps {
   analysis: AnalysisResult | null;
@@ -13,106 +13,91 @@ interface SummaryViewProps {
 const SummaryView: React.FC<SummaryViewProps> = ({ analysis, loading, content, onRefresh }) => {
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <Loader2 size={32} className="animate-spin text-blue-500" />
-        <p className="text-slate-400 text-sm animate-pulse">Analyzing page structure...</p>
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <Loader2 size={40} className="animate-spin text-blue-500 opacity-20" />
+        <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] animate-pulse">Analyzing Active Tab...</p>
       </div>
     );
   }
 
   if (!analysis) {
     return (
-      <div className="text-center p-8 bg-slate-900/50 rounded-2xl border border-dashed border-slate-800">
-        <Sparkles size={32} className="mx-auto text-slate-600 mb-4" />
-        <h3 className="text-slate-200 font-medium mb-2">No Content Analyzed</h3>
-        <p className="text-slate-500 text-sm mb-6">Click the button below to analyze this simulated browser tab.</p>
+      <div className="flex flex-col items-center justify-center text-center py-8">
+        <div className="w-16 h-16 bg-blue-500/5 rounded-full flex items-center justify-center mb-4 border border-blue-500/10">
+          <Globe size={28} className="text-slate-700" />
+        </div>
+        <h3 className="text-slate-100 font-black text-sm mb-2">Target Acquired</h3>
+        <p className="text-slate-500 text-[11px] mb-6 leading-relaxed px-4">Ready to extract intelligence from the active page.</p>
         <button 
           onClick={onRefresh}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all shadow-lg shadow-blue-500/20"
+          className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-xl shadow-blue-600/20 text-[9px] font-black uppercase tracking-widest active:scale-95"
         >
-          Analyze Current Page
+          Initialize Neural Lens
         </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Page Info */}
-      <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex items-start gap-4">
-        <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+      <div className="flex items-start gap-4 p-4 bg-slate-950/50 rounded-2xl border border-slate-800">
+        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
           <Globe size={20} />
         </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-slate-100 truncate">{content.title}</h2>
-          <div className="flex items-center gap-2 text-slate-500 text-xs mt-1">
-            <span className="truncate max-w-[150px]">{content.url}</span>
-            <ExternalLink size={12} />
-          </div>
+        <div className="min-w-0">
+          <h2 className="text-sm font-black text-white truncate pr-4">{content.title}</h2>
+          <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mt-0.5 truncate">{content.url}</p>
         </div>
+        <button onClick={onRefresh} className="p-2 ml-auto text-slate-500 hover:text-blue-400 transition-colors">
+          <Sparkles size={14} />
+        </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800/50 flex flex-col items-center text-center">
-          <Clock size={16} className="text-emerald-400 mb-1" />
-          <span className="text-[10px] text-slate-500 uppercase tracking-tighter">Read Time</span>
-          <span className="text-xs font-semibold text-slate-200">{analysis.readingTime}</span>
+      {/* Stats Cluster */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-800/50">
+          <div className="flex items-center gap-2 text-emerald-500 mb-1">
+            <Clock size={12} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Time</span>
+          </div>
+          <p className="text-sm font-black text-white">{analysis.readingTime}</p>
         </div>
-        <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800/50 flex flex-col items-center text-center">
-          <BarChart3 size={16} className="text-purple-400 mb-1" />
-          <span className="text-[10px] text-slate-500 uppercase tracking-tighter">Sentiment</span>
-          <span className="text-xs font-semibold text-slate-200">{analysis.sentiment}</span>
-        </div>
-        <div className="bg-slate-900/40 p-3 rounded-xl border border-slate-800/50 flex flex-col items-center text-center">
-          <Tag size={16} className="text-amber-400 mb-1" />
-          <span className="text-[10px] text-slate-500 uppercase tracking-tighter">Complexity</span>
-          <span className="text-xs font-semibold text-slate-200">Medium</span>
+        <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-800/50">
+          <div className="flex items-center gap-2 text-purple-500 mb-1">
+            <BarChart3 size={12} />
+            <span className="text-[8px] font-black uppercase tracking-widest">Sentiment</span>
+          </div>
+          <p className="text-sm font-black text-white">{analysis.sentiment}</p>
         </div>
       </div>
 
       {/* Summary Content */}
-      <section className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-          <MessageCircle size={14} /> TL;DR
+      <div className="space-y-3">
+        <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+          <MessageCircle size={12} /> Neural Summary
         </h3>
-        <p className="text-slate-300 leading-relaxed text-sm bg-blue-500/5 p-4 rounded-xl border border-blue-500/10">
+        <p className="text-[12px] text-slate-300 leading-relaxed bg-white/[0.02] p-4 rounded-2xl border border-white/[0.05]">
           {analysis.summary}
         </p>
-      </section>
+      </div>
 
-      {/* Key Points */}
-      <section className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Key Takeaways</h3>
-        <ul className="space-y-3">
-          {analysis.keyPoints.map((point, i) => (
-            <li key={i} className="flex gap-3 items-start group">
-              <span className="flex-shrink-0 w-5 h-5 bg-slate-800 text-slate-400 text-[10px] flex items-center justify-center rounded-full border border-slate-700 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">
+      {/* Key Vectors */}
+      <div className="space-y-3">
+        <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Strategic Vectors</h3>
+        <div className="space-y-2">
+          {analysis.keyPoints.slice(0, 3).map((point, i) => (
+            <div key={i} className="flex gap-3 items-start bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+              <span className="shrink-0 w-6 h-6 bg-slate-950 text-slate-500 text-[8px] flex items-center justify-center rounded-lg border border-slate-800 font-black">
                 {i + 1}
               </span>
-              <p className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors leading-snug">
+              <p className="text-[11px] font-medium text-slate-400">
                 {point}
               </p>
-            </li>
+            </div>
           ))}
-        </ul>
-      </section>
-
-      {/* Topics */}
-      <section className="flex flex-wrap gap-2 pt-4">
-        {analysis.topics.map((topic, i) => (
-          <span key={i} className="px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-full text-xs text-slate-400 hover:border-blue-500/30 hover:text-blue-400 cursor-default transition-all">
-            #{topic}
-          </span>
-        ))}
-      </section>
-
-      <button 
-        onClick={onRefresh}
-        className="w-full mt-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-all border border-slate-700 flex items-center justify-center gap-2"
-      >
-        <Sparkles size={16} /> Re-analyze content
-      </button>
+        </div>
+      </div>
     </div>
   );
 };

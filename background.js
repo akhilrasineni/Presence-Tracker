@@ -1,16 +1,37 @@
 
 /**
  * Background Service Worker for Presence & Break Tracker
- * Handles reminders and persistent timers
+ * Handles reminders and persistent timers using unified local storage keys.
  */
 
 const BREAK_ALARM_NAME = 'break-reminder';
+const REMINDERS_KEY = 'rpt_reminders'; // Unified key
 
 // Initialize alarms on installation
 chrome.runtime.onInstalled.addListener(() => {
   // Set up break reminder every 60 minutes
   chrome.alarms.create(BREAK_ALARM_NAME, { periodInMinutes: 60 });
 });
+
+// Listen for storage changes to sync alarms for new reminders
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes[REMINDERS_KEY]) {
+    syncReminderAlarms(changes[REMINDERS_KEY].newValue);
+  }
+});
+
+function syncReminderAlarms(reminders) {
+  if (!reminders) return;
+  // Simplified logic: Clear and recreate alarms for incomplete tasks
+  reminders.forEach(r => {
+    if (!r.completed && !r.notified) {
+      const scheduledTime = new Date(r.dateTime).getTime();
+      if (scheduledTime > Date.now()) {
+        chrome.alarms.create(`reminder-${r.id}`, { when: scheduledTime });
+      }
+    }
+  });
+}
 
 // Listen for alarms
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -33,7 +54,7 @@ function showBreakNotification() {
 
   chrome.notifications.create({
     type: 'basic',
-    iconUrl: 'icon.png', // Fallback to generic if not found
+    iconUrl: 'icon.png',
     title: 'Time for a Break!',
     message: msg,
     priority: 2
@@ -41,21 +62,22 @@ function showBreakNotification() {
 }
 
 async function handleTaskReminder(id) {
-  const data = await chrome.storage.local.get(['presence_tracker_reminders']);
-  const reminders = data.presence_tracker_reminders || [];
+  // Read from unified key
+  const data = await chrome.storage.local.get([REMINDERS_KEY]);
+  const reminders = data[REMINDERS_KEY] || [];
   const reminder = reminders.find(r => r.id === id);
 
   if (reminder && !reminder.completed) {
     chrome.notifications.create({
       type: 'basic',
       iconUrl: 'icon.png',
-      title: 'Task Reminder',
+      title: 'Mission Objective Alert',
       message: reminder.title,
       priority: 2
     });
 
     // Mark as notified in storage
     const updated = reminders.map(r => r.id === id ? { ...r, notified: true } : r);
-    await chrome.storage.local.set({ presence_tracker_reminders: updated });
+    await chrome.storage.local.set({ [REMINDERS_KEY]: updated });
   }
 }

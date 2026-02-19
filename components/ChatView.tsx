@@ -2,25 +2,48 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, PageContent } from '../types';
 import { chatWithPage } from '../services/geminiService';
-import { Send, User, Bot, Loader2, Info } from 'lucide-react';
+import { Send, User, Bot, Loader2, Info, Trash2 } from 'lucide-react';
 
 interface ChatViewProps {
   pageContent: PageContent;
 }
 
+const STORAGE_KEY = 'rpt_chat_history';
+
 const ChatView: React.FC<ChatViewProps> = ({ pageContent }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'model', text: "I've indexed this page. Ask me anything about it!", timestamp: Date.now() }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load history from local core
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    } else {
+      setMessages([{ role: 'model', text: "I've indexed this page. Ask me anything about it!", timestamp: Date.now() }]);
+    }
+  }, []);
+
+  // Save history to local core on change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  const clearHistory = () => {
+    const initial = [{ role: 'model', text: "Neural buffers cleared. Ready for new input.", timestamp: Date.now() }];
+    setMessages(initial);
+    localStorage.removeItem(STORAGE_KEY);
+  };
 
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -49,12 +72,21 @@ const ChatView: React.FC<ChatViewProps> = ({ pageContent }) => {
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20 flex items-start gap-3">
-        <Info size={16} className="text-blue-400 mt-0.5" />
-        <p className="text-[11px] text-blue-300 leading-tight">
-          Chat contextualized by current page: <br/>
-          <span className="font-semibold text-blue-200">"{pageContent.title}"</span>
-        </p>
+      <div className="bg-blue-500/10 p-3 rounded-lg border border-blue-500/20 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <Info size={16} className="text-blue-400 mt-0.5" />
+          <p className="text-[11px] text-blue-300 leading-tight">
+            Chat context: <br/>
+            <span className="font-semibold text-blue-200">"{pageContent.title}"</span>
+          </p>
+        </div>
+        <button 
+          onClick={clearHistory}
+          className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+          title="Clear local logs"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
 
       {/* Messages */}

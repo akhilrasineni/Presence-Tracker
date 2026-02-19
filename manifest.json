@@ -1,9 +1,9 @@
 
 {
   "manifest_version": 3,
-  "name": "Presence & Break Tracker",
-  "version": "1.2.0",
-  "description": "Professional presence tracking, task reminders, and health alerts powered by Gemini AI.",
+  "name": "RASINENI PT PRO",
+  "version": "2.0.0",
+  "description": "Professional presence tracking & Neural Web Assistant.",
   "permissions": [
     "storage",
     "alarms",
@@ -11,15 +11,17 @@
     "activeTab",
     "scripting"
   ],
+  "icons": {
+    "128": "icon.png"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
   "action": {
     "default_popup": "index.html",
-    "default_title": "Presence Tracker"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self' https://cdn.tailwindcss.com https://esm.sh; object-src 'self'"
+    "default_title": "RASINENI PT PRO",
+    "default_width": 450,
+    "default_height": 600
   }
 }

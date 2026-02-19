@@ -1,374 +1,282 @@
 
 import React, { useState, useMemo } from 'react';
 import { PresenceRecord, PresenceStatus } from '../types';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  MapPin, 
-  Home, 
-  CalendarOff, 
-  Plane,
-  X,
-  CheckCircle2,
-  Calendar as CalendarIcon,
-  Download,
-  Target,
-  Settings2
-} from 'lucide-react';
+import { Settings2, X, MapPin, Calendar as CalendarIcon, Edit3, Flame, Target } from 'lucide-react';
 
 interface CalendarViewProps {
   records: Record<string, PresenceRecord>;
-  onUpdateRecord: (record: PresenceRecord) => void;
+  onUpdate: (rec: PresenceRecord) => void;
+  goal: number;
+  setGoal: (val: number) => void;
 }
 
-const DAYS_OF_WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
+const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, setGoal }) => {
+  const [showFullCalendar, setShowFullCalendar] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [tempGoal, setTempGoal] = useState(goal);
+  const [customReason, setCustomReason] = useState('');
 
-const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdateRecord }) => {
-  const [viewDate, setViewDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [editingStatus, setEditingStatus] = useState<PresenceStatus>('office');
-  const [leaveReason, setLeaveReason] = useState('');
-  const [officeGoal, setOfficeGoal] = useState(3);
-  const [showGoalSettings, setShowGoalSettings] = useState(false);
+  // Simulation settings for Feb 2026 (Epoch Sync: Feb 15)
+  const YEAR = 2026;
+  const MONTH = 1; // February (0-indexed)
+  const daysInMonth = 28;
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const today = 15; // Anchor to Feb 15, 2026
 
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const handlePrevMonth = () => setViewDate(new Date(year, month - 1, 1));
-  const handleNextMonth = () => setViewDate(new Date(year, month + 1, 1));
-
-  const formatDateKey = (day: number) => {
-    const d = new Date(year, month, day);
-    return d.toISOString().split('T')[0];
+  const getDayRecord = (day: number): PresenceRecord | null => {
+    const dateStr = `${YEAR}-02-${String(day).padStart(2, '0')}`;
+    return records[dateStr] || null;
   };
 
-  const isToday = (day: number) => {
-    const today = new Date();
-    return today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+  const getDayStatus = (day: number): PresenceStatus | 'none' | 'weekend' => {
+    const record = getDayRecord(day);
+    if (record) return record.status;
+
+    const dateObj = new Date(YEAR, MONTH, day);
+    const dayOfWeek = dateObj.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) return 'weekend';
+    if (day < today) return 'remote';
+
+    return 'none';
   };
 
-  const getStatus = (day: number): PresenceStatus => {
-    const key = formatDateKey(day);
-    if (records[key]) return records[key].status;
-    const date = new Date(year, month, day);
-    const dayOfWeek = date.getDay();
-    return (dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : 'remote';
-  };
+  const currentMonthCount = useMemo(() => {
+    return days.filter(d => {
+      const status = getDayStatus(d);
+      return status === 'office' || status === 'planned';
+    }).length;
+  }, [records, days, goal]);
 
-  const handleDayClick = (day: number) => {
-    const key = formatDateKey(day);
-    const current = records[key] || { date: key, status: getStatus(day) };
-    setSelectedDate(key);
-    setEditingStatus(current.status);
-    setLeaveReason(current.reason || '');
-  };
-
-  const saveRecord = () => {
-    if (selectedDate) {
-      onUpdateRecord({
-        date: selectedDate,
-        status: editingStatus,
-        reason: editingStatus === 'leave' ? leaveReason : undefined
-      });
-      setSelectedDate(null);
-    }
-  };
-
-  // Weekly Goal Logic
-  const weeklyOfficeCount = useMemo(() => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-    const monday = new Date(today.setDate(diff));
-    
-    let count = 0;
-    for (let i = 0; i < 5; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const key = d.toISOString().split('T')[0];
-      if (records[key]?.status === 'office') count++;
-    }
-    return count;
+  const hasPlannedDays = useMemo(() => {
+    // Explicitly cast Object.values to PresenceRecord[] to avoid 'unknown' property access errors
+    return (Object.values(records) as PresenceRecord[]).some(r => r.status === 'planned');
   }, [records]);
 
-  // CSV Export Utility
-  const exportToCSV = () => {
-    const headers = ['Date', 'Status', 'Reason'];
-    const rows = Object.values(records)
-      .sort((a, b) => b.date.localeCompare(a.date))
-      .map(r => [r.date, r.status, r.reason || 'N/A']);
-    
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `presence_report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const renderStatusIcon = (status: PresenceStatus) => {
-    switch (status) {
-      case 'office': return <MapPin size={10} className="text-blue-400" />;
-      case 'remote': return <Home size={10} className="text-purple-400" />;
-      case 'leave': return <Plane size={10} className="text-amber-400" />;
-      case 'holiday': return <CalendarOff size={10} className="text-emerald-400" />;
-      case 'weekend': return null;
-      default: return null;
+  const handleStatusSelect = (status: PresenceStatus) => {
+    if (selectedDay) {
+      onUpdate({
+        date: `${YEAR}-02-${String(selectedDay).padStart(2, '0')}`,
+        status,
+        reason: status === 'other' ? customReason : undefined
+      });
+      setSelectedDay(null);
+      setCustomReason('');
     }
   };
-
-  const getStatusStyles = (status: PresenceStatus) => {
-    switch (status) {
-      case 'office': return 'bg-blue-500/20 border-blue-500/40 text-blue-100 shadow-[0_0_8px_rgba(59,130,246,0.2)]';
-      case 'remote': return 'bg-purple-500/20 border-purple-500/40 text-purple-100';
-      case 'leave': return 'bg-amber-500/20 border-amber-500/40 text-amber-100 animate-pulse';
-      case 'holiday': return 'bg-emerald-500/20 border-emerald-500/40 text-emerald-100';
-      case 'weekend': return 'bg-slate-800/30 border-slate-700/50 text-slate-500 opacity-60';
-      default: return 'bg-slate-900 border-slate-800 text-slate-400';
-    }
-  };
-
-  const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const monthStats = daysArray.reduce((acc, day) => {
-    const status = getStatus(day);
-    if (status !== 'weekend') {
-      acc[status] = (acc[status] || 0) + 1;
-    }
-    return acc;
-  }, { office: 0, remote: 0, leave: 0, holiday: 0 } as Record<PresenceStatus, number>);
-
-  const totalTracked = monthStats.office + monthStats.remote + monthStats.leave + monthStats.holiday || 1;
 
   return (
-    <div className="space-y-6">
-      {/* Header & Goal Tracker */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <CalendarIcon size={20} className="text-blue-400" /> Presence Tracker
-          </h2>
-          <div className="flex gap-1">
-            <button onClick={handlePrevMonth} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
-              <ChevronLeft size={18} />
-            </button>
-            <button onClick={handleNextMonth} className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 transition-colors">
-              <ChevronRight size={18} />
-            </button>
+    <>
+      {/* COMPACT TRIGGER HUD */}
+      <button 
+        onClick={() => setShowFullCalendar(true)}
+        className={`flex items-center gap-4 bg-slate-900/60 border border-slate-800 hover:border-blue-500/30 rounded-2xl p-2.5 pr-5 transition-all active:scale-95 group relative ${hasPlannedDays ? 'ring-1 ring-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.1)]' : ''}`}
+      >
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform ${hasPlannedDays ? 'bg-blue-500 shadow-blue-500/30 group-hover:rotate-6' : 'bg-slate-800 text-slate-400 group-hover:bg-blue-600/20'}`}>
+          {hasPlannedDays ? <Target size={20} className="animate-pulse" /> : <MapPin size={20} />}
+        </div>
+        <div className="text-left">
+          <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] mb-0.5">Presence HUD</p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-black text-white">{currentMonthCount}</span>
+            <span className="text-slate-600 text-[10px] font-bold uppercase tracking-tighter">/ {goal} MISSION DAYS</span>
           </div>
         </div>
+        {hasPlannedDays && (
+           <div className="absolute -top-1 -right-1 flex h-3 w-3">
+             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+             <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+           </div>
+        )}
+      </button>
 
-        {/* Weekly Goal Card */}
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-4 shadow-xl">
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-500/10 rounded-lg text-blue-400">
-                <Target size={16} />
-              </div>
+      {/* FULL CALENDAR POPUP MODAL */}
+      {showFullCalendar && (
+        <div className="fixed inset-0 z-[400] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-[#0f172a] border border-slate-800 w-full max-w-[420px] rounded-[3rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-start mb-8">
               <div>
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Weekly Office Goal</h4>
-                <p className="text-lg font-bold text-white leading-tight">
-                  {weeklyOfficeCount} <span className="text-slate-500 text-sm font-medium">/ {officeGoal} days</span>
-                </p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowGoalSettings(!showGoalSettings)}
-              className="p-1.5 text-slate-500 hover:text-blue-400 transition-colors"
-            >
-              <Settings2 size={16} />
-            </button>
-          </div>
-          
-          {showGoalSettings ? (
-            <div className="mb-2 animate-in slide-in-from-top-1 duration-200">
-              <div className="flex items-center gap-3 bg-slate-950/50 p-2 rounded-lg border border-slate-700/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Set Target:</span>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map(g => (
-                    <button 
-                      key={g} 
-                      onClick={() => { setOfficeGoal(g); setShowGoalSettings(false); }}
-                      className={`w-7 h-7 rounded-md text-[10px] font-bold transition-all ${officeGoal === g ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
-                    >
-                      {g}
-                    </button>
-                  ))}
+                <h3 className="text-xl font-black text-white mb-1">Office Presence</h3>
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <CalendarIcon size={12} /> February 2026
+                  </p>
+                  <div className="w-1 h-1 rounded-full bg-slate-700" />
+                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1.5">
+                    <Flame size={12} /> Target: {goal}/wk
+                  </p>
                 </div>
               </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setIsEditingGoal(true)}
+                  className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-white transition-all"
+                >
+                  <Settings2 size={18} />
+                </button>
+                <button 
+                  onClick={() => setShowFullCalendar(false)} 
+                  className="p-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-white transition-all"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden flex">
-              <div 
-                className={`h-full transition-all duration-700 ease-out ${weeklyOfficeCount >= officeGoal ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]'}`} 
-                style={{ width: `${Math.min((weeklyOfficeCount / officeGoal) * 100, 100)}%` }} 
+
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-3 mb-8">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                <div key={d} className="text-[10px] font-black text-slate-600 text-center mb-1">{d}</div>
+              ))}
+              {days.map(day => {
+                const status = getDayStatus(day);
+                const record = getDayRecord(day);
+                const isToday = day === today;
+                
+                let colorClass = "bg-transparent border-slate-800/40 text-slate-600";
+                if (status === 'weekend') {
+                  colorClass = "bg-slate-950/50 border-dashed border-slate-800/10 text-slate-700 cursor-not-allowed";
+                } else if (status === 'office') {
+                  colorClass = "bg-blue-600/30 border-blue-500 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.1)]";
+                } else if (status === 'planned') {
+                  colorClass = "bg-blue-900/10 border-dashed border-blue-500/50 text-blue-400 shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]";
+                } else if (status === 'remote') {
+                  colorClass = "bg-purple-600/20 border-purple-500/30 text-purple-200/70";
+                } else if (status === 'leave') {
+                  colorClass = "bg-amber-600/30 border-amber-500 text-amber-100";
+                } else if (status === 'sick') {
+                  colorClass = "bg-rose-600/30 border-rose-500 text-rose-100";
+                } else if (status === 'holiday') {
+                  colorClass = "bg-cyan-600/30 border-cyan-500 text-cyan-100";
+                } else if (status === 'other') {
+                  colorClass = "bg-slate-700/50 border-slate-500 text-slate-200";
+                }
+
+                if (isToday) {
+                  colorClass += " ring-2 ring-white/20 ring-offset-2 ring-offset-slate-950";
+                }
+
+                return (
+                  <button 
+                    key={day} 
+                    disabled={status === 'weekend'}
+                    onClick={() => setSelectedDay(day)}
+                    className={`aspect-square rounded-2xl border flex flex-col items-center justify-center transition-all hover:scale-110 active:scale-90 relative ${colorClass}`}
+                  >
+                    <span className={`text-[11px] font-bold ${status === 'other' || status === 'planned' ? 'mb-0.5' : ''}`}>{day}</span>
+                    {(status === 'other' && record?.reason) && (
+                       <span className="text-[5px] font-black uppercase text-center leading-[1] px-1 truncate w-full opacity-60">
+                        {record.reason}
+                       </span>
+                    )}
+                    {status === 'planned' && (
+                       <span className="text-[5px] font-black uppercase text-center leading-[1] px-1 text-blue-400">
+                        TARGETED
+                       </span>
+                    )}
+                    {isToday && <span className="absolute -top-1.5 text-[6px] font-black text-white uppercase tracking-tighter bg-blue-600 px-1 rounded-full">TODAY</span>}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[8px] font-black uppercase tracking-widest text-slate-600 border-t border-slate-800/50 pt-6">
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /> Office</div>
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-dashed border-blue-500" /> Planned</div>
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500/50" /> Remote</div>
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500" /> Sick</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STATUS SELECTION MODAL */}
+      {selectedDay && (
+        <div className="fixed inset-0 z-[500] bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-[#1e293b] border border-slate-700 w-full max-w-[320px] rounded-[2rem] p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+             <div className="flex justify-between items-center mb-5">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feb {selectedDay} Presence</h3>
+              <button onClick={() => { setSelectedDay(null); setCustomReason(''); }} className="text-slate-500 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button onClick={() => handleStatusSelect('office')} className="py-4 bg-blue-600/20 border border-blue-500/20 rounded-xl text-[9px] font-black uppercase text-blue-400 hover:bg-blue-600/30 transition-all flex items-center justify-center gap-2">🏢 Office</button>
+              <button onClick={() => handleStatusSelect('planned')} className="py-4 bg-blue-900/10 border border-blue-500/50 rounded-xl text-[9px] font-black uppercase text-blue-300 hover:bg-blue-900/20 transition-all flex items-center justify-center gap-2">🎯 Planned</button>
+              <button onClick={() => handleStatusSelect('remote')} className="py-4 bg-purple-600/20 border border-purple-500/20 rounded-xl text-[9px] font-black uppercase text-purple-400 hover:bg-purple-600/30 transition-all flex items-center justify-center gap-2">🏠 Remote</button>
+              <button onClick={() => handleStatusSelect('sick')} className="py-4 bg-rose-600/20 border border-rose-500/20 rounded-xl text-[9px] font-black uppercase text-rose-400 hover:bg-rose-600/30 transition-all flex items-center justify-center gap-2">🤒 Sick</button>
+              <button onClick={() => handleStatusSelect('holiday')} className="py-4 bg-cyan-600/20 border border-cyan-500/20 rounded-xl text-[9px] font-black uppercase text-cyan-400 hover:bg-cyan-600/30 transition-all flex items-center justify-center gap-2">🏖️ Holiday</button>
+              <button onClick={() => handleStatusSelect('other')} className="py-4 bg-slate-600/20 border border-slate-500/20 rounded-xl text-[9px] font-black uppercase text-slate-400 hover:bg-slate-600/30 transition-all flex items-center justify-center gap-2">✨ Other</button>
+            </div>
+
+            <div className="space-y-2 border-t border-slate-700/50 pt-4">
+              <div className="flex items-center gap-2 text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">
+                <Edit3 size={10} /> Self Input (Optional)
+              </div>
+              <input 
+                type="text"
+                placeholder="E.g. Travel, Conference..."
+                value={customReason}
+                onChange={e => setCustomReason(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-[11px] text-white outline-none focus:border-blue-500/50 transition-colors"
               />
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Calendar Grid */}
-      <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-4">
-        <div className="text-center mb-4 text-sm font-semibold text-slate-300">
-          {MONTHS[month]} {year}
-        </div>
-        
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {DAYS_OF_WEEK.map((d, i) => (
-            <div key={i} className="text-center text-[10px] font-bold text-slate-600 py-1">
-              {d}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1.5">
-          {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-10" />
-          ))}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const status = getStatus(day);
-            const isTodayDate = isToday(day);
+      {/* GOAL EDITOR MODAL */}
+      {isEditingGoal && (
+        <div className="fixed inset-0 z-[500] bg-slate-950/40 backdrop-blur-sm flex items-center justify-center p-6 animate-in fade-in duration-200">
+          <div className="bg-[#1e293b] border border-slate-700 w-full max-w-[320px] rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center mb-8">Weekly Office Objective</h3>
             
-            return (
-              <button
-                key={day}
-                onClick={() => handleDayClick(day)}
-                className={`h-11 rounded-lg border flex flex-col items-center justify-center relative transition-all hover:scale-105 active:scale-95 ${getStatusStyles(status)} ${isTodayDate ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-950' : ''}`}
-              >
-                <span className="text-xs font-medium">{day}</span>
-                <div className="absolute bottom-1">
-                  {renderStatusIcon(status)}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_4px_#3b82f6]" /> Office</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500" /> Remote</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500" /> Leave</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Holiday</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-700" /> Off</div>
-      </div>
-
-      {/* Stats Summary */}
-      <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
-        <div className="flex justify-between items-end">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Breakdown</span>
-          <div className="flex flex-wrap justify-end gap-3 text-[10px] font-mono">
-             <div className="flex flex-col items-end">
-               <span className="text-blue-400">{monthStats.office}</span>
-               <span className="text-slate-600 uppercase">Office</span>
-             </div>
-             <div className="flex flex-col items-end border-l border-slate-800 pl-3">
-               <span className="text-purple-400">{monthStats.remote}</span>
-               <span className="text-slate-600 uppercase">Remote</span>
-             </div>
-             <div className="flex flex-col items-end border-l border-slate-800 pl-3">
-               <span className="text-amber-400">{monthStats.leave}</span>
-               <span className="text-slate-600 uppercase">Leave</span>
-             </div>
-          </div>
-        </div>
-        
-        <div className="space-y-1.5">
-          <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
-            <div className="h-full bg-blue-500 transition-all duration-500 ease-out" style={{ width: `${(monthStats.office / totalTracked) * 100}%` }} title="Office" />
-            <div className="h-full bg-purple-500 transition-all duration-500 ease-out" style={{ width: `${(monthStats.remote / totalTracked) * 100}%` }} title="Remote" />
-            <div className="h-full bg-amber-500 transition-all duration-500 ease-out" style={{ width: `${(monthStats.leave / totalTracked) * 100}%` }} title="Leave" />
-            <div className="h-full bg-emerald-500 transition-all duration-500 ease-out" style={{ width: `${(monthStats.holiday / totalTracked) * 100}%` }} title="Holiday" />
-          </div>
-          <div className="flex justify-between items-center mt-2">
-             <span className="text-[9px] text-slate-500 font-medium uppercase tracking-tighter">Efficiency Trend</span>
-             <button 
-               onClick={exportToCSV}
-               className="flex items-center gap-1.5 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-bold transition-all border border-slate-700"
-             >
-               <Download size={12} /> Export CSV
-             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Edit Modal */}
-      {selectedDate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-[320px] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-100">Manage Presence</h3>
-              <button onClick={() => setSelectedDate(null)} className="text-slate-500 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
+            <div className="space-y-10 mb-10 px-2">
+              <div className="flex flex-col items-center gap-4">
+                <span className="text-5xl font-black text-white tabular-nums tracking-tighter">
+                  {tempGoal}
+                </span>
+                <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                  Days / Week
+                </span>
+              </div>
+              
+              <div className="relative h-2 bg-slate-900 rounded-full">
+                <input 
+                  type="range"
+                  min="1"
+                  max="5"
+                  step="1"
+                  value={tempGoal}
+                  onChange={e => setTempGoal(parseInt(e.target.value))}
+                  className="absolute inset-0 w-full h-2 appearance-none bg-transparent cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-white/20 [&::-webkit-slider-thumb]:shadow-lg"
+                />
+                <div 
+                  className="h-full bg-blue-600 rounded-full transition-all pointer-events-none"
+                  style={{ width: `${((tempGoal - 1) / 4) * 100}%` }}
+                />
+              </div>
             </div>
-            
-            <div className="p-5 space-y-4">
-              <div className="text-sm text-slate-400">
-                Update status for <span className="text-blue-400 font-semibold">{selectedDate}</span>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { id: 'office', label: 'In Office', icon: MapPin, color: 'text-blue-400' },
-                  { id: 'remote', label: 'Remote', icon: Home, color: 'text-purple-400' },
-                  { id: 'leave', label: 'Mark Leave', icon: Plane, color: 'text-amber-400' },
-                  { id: 'holiday', label: 'Public Holiday', icon: CalendarOff, color: 'text-emerald-400' }
-                ].map((stat) => (
-                  <button
-                    key={stat.id}
-                    onClick={() => setEditingStatus(stat.id as PresenceStatus)}
-                    className={`p-3 rounded-xl border flex flex-col items-center gap-2 transition-all ${editingStatus === stat.id ? 'bg-blue-600/10 border-blue-500 text-blue-100' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
-                  >
-                    <stat.icon size={20} className={stat.color} />
-                    <span className="text-[10px] font-bold uppercase tracking-tight">{stat.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {editingStatus === 'leave' && (
-                <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Reason for Leave</label>
-                  <select 
-                    value={leaveReason} 
-                    onChange={(e) => setLeaveReason(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="">Select a reason...</option>
-                    <option value="Personal">Personal Reasons</option>
-                    <option value="Sick">Sick Leave</option>
-                    <option value="Vacation">Annual Vacation</option>
-                    <option value="Doctor">Doctor Appointment</option>
-                    <option value="Family">Family Commitment</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              )}
-
-              <button
-                onClick={saveRecord}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+            <div className="flex gap-2">
+              <button 
+                onClick={() => { setIsEditingGoal(false); setTempGoal(goal); }} 
+                className="flex-1 py-4 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:text-slate-300 transition-colors"
               >
-                <CheckCircle2 size={18} /> Update Record
+                Reset
+              </button>
+              <button 
+                onClick={() => { setGoal(tempGoal); setIsEditingGoal(false); }} 
+                className="flex-[2] py-4 bg-blue-600 rounded-2xl text-[9px] font-black uppercase tracking-widest text-white shadow-xl shadow-blue-600/30 active:scale-95 transition-all"
+              >
+                Calibrate Target
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

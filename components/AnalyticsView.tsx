@@ -1,22 +1,20 @@
 
 import React, { useMemo } from 'react';
-import { PresenceRecord } from '../types';
-import { Target, TrendingUp, Calendar, Zap, Flame, Info } from 'lucide-react';
+import { PresenceRecord, Reminder } from '../types';
+import { Target, TrendingUp, Calendar, Zap, Flame, Info, Award, BarChart, Clock, History, CheckCircle2 } from 'lucide-react';
 
 interface AnalyticsViewProps {
   records: Record<string, PresenceRecord>;
+  reminders: Reminder[];
   goal: number;
-  score: number;
 }
 
-const AnalyticsView: React.FC<AnalyticsViewProps> = ({ records, goal, score }) => {
-  // Generate simulated weekly chart data based on real records
+const AnalyticsView: React.FC<AnalyticsViewProps> = ({ records, reminders, goal }) => {
   const weeklyTrend = useMemo(() => {
-    // Grouping records by week (simplified for Feb 2026)
     const weeks = [0, 0, 0, 0];
     Object.keys(records).forEach(date => {
       const day = parseInt(date.split('-')[2]);
-      if (records[date].status === 'office') {
+      if (records[date].status === 'office' || records[date].status === 'planned') {
         const weekIdx = Math.min(3, Math.floor((day - 1) / 7));
         weeks[weekIdx]++;
       }
@@ -24,129 +22,156 @@ const AnalyticsView: React.FC<AnalyticsViewProps> = ({ records, goal, score }) =
     return weeks;
   }, [records]);
 
-  const streak = useMemo(() => {
-    let currentStreak = 0;
-    for (let i = weeklyTrend.length - 1; i >= 0; i--) {
-      if (weeklyTrend[i] >= goal) currentStreak++;
-      else break;
+  const stats = useMemo(() => {
+    const completed = reminders.filter(r => r.completed);
+    const totalReminders = reminders.length;
+    const efficiency = totalReminders === 0 ? 0 : Math.round((completed.length / totalReminders) * 100);
+    
+    // Find most active office day
+    const dayCounts: Record<number, number> = {};
+    Object.keys(records).forEach(dateStr => {
+      if (records[dateStr].status === 'office') {
+        const d = new Date(dateStr).getDay();
+        dayCounts[d] = (dayCounts[d] || 0) + 1;
+      }
+    });
+    
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let mostActiveDay = 'N/A';
+    let maxCount = 0;
+    Object.entries(dayCounts).forEach(([day, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        mostActiveDay = dayNames[parseInt(day)];
+      }
+    });
+
+    return { efficiency, totalReminders, completedCount: completed.length, mostActiveDay };
+  }, [reminders, records]);
+
+  const tacticalReport = useMemo(() => {
+    const avgAttendance = weeklyTrend.reduce((a, b) => a + b, 0) / (weeklyTrend.length || 1);
+    const complianceRate = avgAttendance / (goal || 1);
+    
+    let grade = 'D';
+    let label = 'Low Compliance';
+    let color = 'text-slate-500';
+    let insight = "Operational presence is currently sub-optimal. Schedule more mid-week office sessions.";
+
+    if (complianceRate >= 1.0) {
+      grade = 'S';
+      label = 'Peak Efficiency';
+      color = 'text-emerald-400';
+      insight = "Maximum compliance reached. Your office presence matches strategic objectives.";
+    } else if (complianceRate >= 0.8) {
+      grade = 'A';
+      label = 'High Consistency';
+      color = 'text-blue-400';
+      insight = "Steady performance. You are consistently hitting your mission goals.";
+    } else if (complianceRate >= 0.5) {
+      grade = 'B';
+      label = 'Stable Utility';
+      color = 'text-indigo-400';
+      insight = "Moderate presence detected. Aim for a streak to reach the next tier.";
     }
-    return currentStreak;
+    return { grade, label, color, insight };
   }, [weeklyTrend, goal]);
 
-  const smartInsight = useMemo(() => {
-    if (score >= 90) return "Optimal operational consistency achieved. Maintain trajectory.";
-    if (score >= 70) return "Steady presence detected. Increasing office visits by 10% will hit peak target.";
-    if (score > 0) return "Presence below objective. Aim for mid-week office sessions to boost score.";
-    return "Neural patterns suggest remote dominance. Initialize office deployment sequence.";
-  }, [score]);
+  const recentHistory = useMemo(() => {
+    return reminders
+      .filter(r => r.completed)
+      .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime())
+      .slice(0, 5);
+  }, [reminders]);
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-right-6 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-6 duration-700">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-lg shadow-indigo-500/10">
-            <TrendingUp size={24} />
+          <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+            <BarChart size={24} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-white">Performance Matrix</h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Telemetry Analysis v1.5</p>
-          </div>
-        </div>
-        
-        <div className="group relative">
-           {/* Streak Tooltip */}
-           <div className="absolute -top-16 right-0 w-48 bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl scale-95 group-hover:scale-100">
-              <p className="text-white text-[10px] font-black uppercase mb-1 flex items-center gap-2"><Flame size={10} className="text-amber-500" /> Momentum</p>
-              <p className="text-slate-400 text-[9px] leading-tight">Consecutive weeks where the office day count ({goal}) was met or exceeded.</p>
-            </div>
-
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 cursor-help">
-            <Flame size={16} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest">{streak} Week Streak</span>
+            <h2 className="text-lg font-black text-white">Strategy HUD</h2>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Local Telemetry Active</p>
           </div>
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] text-center space-y-2">
+          <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Tactical Grade</p>
+          <p className={`text-5xl font-black ${tacticalReport.color} tracking-tighter`}>{tacticalReport.grade}</p>
+          <p className="text-[10px] font-black text-white uppercase">{tacticalReport.label}</p>
+        </div>
+
+        <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Mission Velocity</p>
+            <TrendingUp size={14} className="text-emerald-500" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-3xl font-black text-white">{stats.efficiency}%</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase">Efficiency</p>
+          </div>
+          <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${stats.efficiency}%` }} />
+          </div>
+        </div>
+
+        <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Peak Deployment</p>
+            <Calendar size={14} className="text-blue-500" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <p className="text-3xl font-black text-white">{stats.mostActiveDay}</p>
+          </div>
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Busiest Office Day</p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Attendance Trend Chart */}
         <div className="space-y-4">
           <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Zap size={14} className="text-blue-500" /> Attendance Trend
+            <Clock size={14} className="text-blue-500" /> Attendance Flux
           </h3>
-          <div className="bg-slate-900/30 border border-slate-800/60 rounded-3xl p-6 h-48 flex items-end justify-around gap-4">
+          <div className="bg-slate-900/30 border border-slate-800/60 rounded-3xl p-6 h-40 flex items-end justify-around gap-4">
             {weeklyTrend.map((count, i) => {
-              const height = Math.min(100, (count / (goal || 1)) * 50);
+              const height = Math.max(10, Math.min(100, (count / (goal || 1)) * 70));
               const isTargetMet = count >= goal;
               return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-3 group relative">
-                  {/* Bar Tooltip */}
-                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[8px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                    {count} / {goal} DAYS
-                  </div>
-                  
-                  <div className="w-full relative">
-                     <div 
-                      className={`w-full rounded-t-xl transition-all duration-1000 ease-out shadow-2xl ${isTargetMet ? 'bg-blue-500 shadow-blue-500/20' : 'bg-slate-700'}`} 
-                      style={{ height: `${height}px` }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-black text-slate-600 uppercase">W0{i+1}</span>
+                <div key={i} className="flex-1 flex flex-col items-center gap-3">
+                  <div 
+                    className={`w-full rounded-t-xl transition-all duration-1000 ${isTargetMet ? 'bg-blue-600' : 'bg-slate-800'}`} 
+                    style={{ height: `${height}%` }}
+                  />
+                  <span className="text-[8px] font-black text-slate-600 uppercase">W{i+1}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Heatmap Matrix */}
         <div className="space-y-4">
           <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Calendar size={14} className="text-purple-500" /> Activity Matrix
+            <History size={14} className="text-indigo-500" /> Mission Log
           </h3>
-          <div className="bg-slate-900/30 border border-slate-800/60 rounded-3xl p-6 h-48">
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: 28 }).map((_, i) => {
-                const dayNum = i + 1;
-                const dateStr = `2026-02-${String(dayNum).padStart(2, '0')}`;
-                const status = records[dateStr]?.status;
-                let color = "bg-slate-800/40";
-                if (status === 'office') color = "bg-blue-500";
-                if (status === 'remote') color = "bg-purple-500/40";
-                if (status === 'sick') color = "bg-rose-500/40";
-                
-                return (
-                  <div className="relative group" key={i}>
-                    <div 
-                      className={`aspect-square rounded-md ${color} transition-all hover:scale-125 cursor-help border border-white/5 w-full`}
-                    />
-                    {/* Tile Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 border border-slate-700 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl scale-90 group-hover:scale-100 whitespace-nowrap">
-                       <p className="text-[8px] font-black text-slate-500 uppercase">Feb {dayNum}</p>
-                       <p className={`text-[9px] font-bold uppercase ${status ? 'text-white' : 'text-slate-600'}`}>{status || 'NO RECORD'}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="space-y-2">
+            {recentHistory.length > 0 ? (
+              recentHistory.map((h, i) => (
+                <div key={i} className="flex items-center gap-3 bg-slate-900/30 p-3 rounded-xl border border-slate-800/50">
+                  <CheckCircle2 size={12} className="text-emerald-500" />
+                  <p className="text-[10px] font-medium text-slate-300 truncate flex-1">{h.title}</p>
+                  <span className="text-[8px] font-black text-slate-600">{new Date(h.dateTime).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-10 text-center border border-dashed border-slate-800 rounded-2xl">
+                <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">No Recent Activity</p>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* Summary Insights */}
-      <div className="bg-indigo-600/5 border border-indigo-500/10 rounded-3xl p-6 flex items-start gap-6 relative group">
-        {/* Insight Tooltip */}
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-800 p-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl scale-95 group-hover:scale-100">
-          <p className="text-indigo-400 text-[10px] font-black uppercase flex items-center gap-2"><Info size={10} /> Pattern Recognition</p>
-          <p className="text-slate-400 text-[9px]">Insight generated by analyzing the delta between goal compliance and historical presence logs.</p>
-        </div>
-
-        <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex-shrink-0 flex items-center justify-center text-indigo-400">
-          <Target size={28} />
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Core Insight</p>
-          <p className="text-sm font-medium text-slate-300 leading-relaxed italic">
-            "{smartInsight}"
-          </p>
         </div>
       </div>
     </div>

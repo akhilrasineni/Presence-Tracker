@@ -16,25 +16,29 @@ export interface Reminder {
   type?: 'standard' | 'system';
 }
 
-// Added PageContent interface to support browser tab simulation data
 export interface PageContent {
   title: string;
   url: string;
   body: string;
 }
 
-// Added AnalysisResult interface for Gemini page analysis response
+export interface ExtractedTask {
+  description: string;
+  priority: 'High' | 'Medium' | 'Low';
+}
+
 export interface AnalysisResult {
   summary: string;
   keyPoints: string[];
   sentiment: string;
   readingTime: string;
   topics: string[];
+  suggestedTasks: ExtractedTask[]; // New: Tasks found on the page
 }
 
-// Added ChatMessage interface for the AI chat sidebar
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   timestamp: number;
+  groundingUrls?: string[]; // New: URLs from search grounding
 }

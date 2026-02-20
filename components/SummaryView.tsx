@@ -1,101 +1,192 @@
 
-import React from 'react';
-import { AnalysisResult, PageContent } from '../types';
-import { Clock, BarChart3, Tag, MessageCircle, Globe, Sparkles, Loader2, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AnalysisResult, PageContent, ExtractedTask, Reminder } from '../types';
+import { Clock, BarChart3, MessageCircle, Globe, Sparkles, Loader2, ShieldAlert, CheckCircle, Info, AlertTriangle, Fingerprint, Target, Plus, Database, FileText, Layout } from 'lucide-react';
 
 interface SummaryViewProps {
   analysis: AnalysisResult | null;
   loading: boolean;
   content: PageContent;
   onRefresh: () => void;
+  onCommitTask: (task: Reminder) => void;
 }
 
-const SummaryView: React.FC<SummaryViewProps> = ({ analysis, loading, content, onRefresh }) => {
+const SummaryView: React.FC<SummaryViewProps> = ({ analysis, loading, content, onRefresh, onCommitTask }) => {
+  const [hasConsented, setHasConsented] = useState(false);
+  const [committedIndices, setCommittedIndices] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setHasConsented(false);
+    setCommittedIndices(new Set());
+  }, [content.url]);
+
+  const localStats = useMemo(() => {
+    const wordCount = content.body.split(/\s+/).length;
+    const readingTimeMin = Math.ceil(wordCount / 200);
+    return { wordCount, readingTimeMin };
+  }, [content]);
+
+  const handleConsentAndAnalyze = () => {
+    setHasConsented(true);
+    onRefresh();
+  };
+
+  const commitToMission = (task: ExtractedTask, index: number) => {
+    if (committedIndices.has(index)) return;
+    
+    const reminder: Reminder = {
+      id: `ai-extracted-${Date.now()}-${index}`,
+      title: task.description,
+      dateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      completed: false,
+      notified: false
+    };
+    
+    onCommitTask(reminder);
+    setCommittedIndices(prev => new Set([...prev, index]));
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <Loader2 size={40} className="animate-spin text-blue-500 opacity-20" />
-        <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] animate-pulse">Analyzing Active Tab...</p>
+        <div className="relative">
+          <Loader2 size={42} className="animate-spin text-blue-500 opacity-20" />
+          <Fingerprint size={18} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400 animate-pulse" />
+        </div>
+        <div className="text-center">
+          <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] animate-pulse">Transmitting to Neural Hub</p>
+          <p className="text-slate-600 text-[8px] font-bold mt-1">SECURE ENCRYPTED CHANNEL ACTIVE</p>
+        </div>
       </div>
     );
   }
 
-  if (!analysis) {
+  if (!hasConsented) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-8">
-        <div className="w-16 h-16 bg-blue-500/5 rounded-full flex items-center justify-center mb-4 border border-blue-500/10">
-          <Globe size={28} className="text-slate-700" />
+      <div className="flex flex-col space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+            <Globe size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[11px] font-black text-white truncate uppercase tracking-tight">{content.title}</h2>
+            <p className="text-slate-600 text-[8px] font-bold uppercase tracking-widest mt-0.5 truncate">{content.url}</p>
+          </div>
         </div>
-        <h3 className="text-slate-100 font-black text-sm mb-2">Target Acquired</h3>
-        <p className="text-slate-500 text-[11px] mb-6 leading-relaxed px-4">Ready to extract intelligence from the active page.</p>
-        <button 
-          onClick={onRefresh}
-          className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-xl shadow-blue-600/20 text-[9px] font-black uppercase tracking-widest active:scale-95"
-        >
-          Initialize Neural Lens
-        </button>
+
+        {/* Local Metadata Dashboard (Zero AI required) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-950/30 p-4 rounded-2xl border border-slate-800/50 space-y-1">
+            <div className="flex items-center gap-1.5 text-blue-500">
+              <FileText size={10} />
+              <span className="text-[7px] font-black uppercase tracking-widest">Local Density</span>
+            </div>
+            <p className="text-[14px] font-black text-white">{localStats.wordCount} <span className="text-[8px] text-slate-600">Words</span></p>
+          </div>
+          <div className="bg-slate-950/30 p-4 rounded-2xl border border-slate-800/50 space-y-1">
+            <div className="flex items-center gap-1.5 text-indigo-500">
+              <Clock size={10} />
+              <span className="text-[7px] font-black uppercase tracking-widest">Est. Focus</span>
+            </div>
+            <p className="text-[14px] font-black text-white">{localStats.readingTimeMin} <span className="text-[8px] text-slate-600">Mins</span></p>
+          </div>
+        </div>
+
+        <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-[2.5rem] flex flex-col items-center text-center space-y-4">
+          <ShieldAlert size={24} className="text-amber-500/40" />
+          <div className="space-y-1">
+            <h3 className="text-white font-black text-xs uppercase tracking-tight">Neural Activation Required</h3>
+            <p className="text-slate-500 text-[10px] leading-relaxed max-w-[240px] font-medium">
+              Deep page summarization requires external <span className="text-blue-400 font-bold">Gemini AI</span> processing. 
+            </p>
+          </div>
+          <button 
+            onClick={handleConsentAndAnalyze}
+            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl transition-all shadow-xl shadow-blue-600/20 text-[9px] font-black uppercase tracking-[0.2em] active:scale-95 flex items-center justify-center gap-3"
+          >
+            <Fingerprint size={16} /> Deploy Neural Lens
+          </button>
+        </div>
       </div>
     );
   }
+
+  if (!analysis) return null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Info */}
       <div className="flex items-start gap-4 p-4 bg-slate-950/50 rounded-2xl border border-slate-800">
-        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0">
-          <Globe size={20} />
+        <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 shrink-0 border border-blue-500/20">
+          <Globe size={18} />
         </div>
-        <div className="min-w-0">
-          <h2 className="text-sm font-black text-white truncate pr-4">{content.title}</h2>
-          <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest mt-0.5 truncate">{content.url}</p>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[11px] font-black text-white truncate uppercase tracking-tight">{content.title}</h2>
+          <p className="text-slate-600 text-[8px] font-bold uppercase tracking-widest mt-0.5 truncate">{content.url}</p>
         </div>
-        <button onClick={onRefresh} className="p-2 ml-auto text-slate-500 hover:text-blue-400 transition-colors">
-          <Sparkles size={14} />
-        </button>
       </div>
 
-      {/* Stats Cluster */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-800/50">
-          <div className="flex items-center gap-2 text-emerald-500 mb-1">
-            <Clock size={12} />
-            <span className="text-[8px] font-black uppercase tracking-widest">Time</span>
+        <div className="bg-slate-950/30 p-3 rounded-2xl border border-slate-800/50 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-emerald-500">
+            <Clock size={10} />
+            <span className="text-[7px] font-black uppercase tracking-widest">Time Vector</span>
           </div>
-          <p className="text-sm font-black text-white">{analysis.readingTime}</p>
+          <p className="text-[12px] font-black text-white">{analysis.readingTime}</p>
         </div>
-        <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-800/50">
-          <div className="flex items-center gap-2 text-purple-500 mb-1">
-            <BarChart3 size={12} />
-            <span className="text-[8px] font-black uppercase tracking-widest">Sentiment</span>
+        <div className="bg-slate-950/30 p-3 rounded-2xl border border-slate-800/50 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 text-purple-500">
+            <BarChart3 size={10} />
+            <span className="text-[7px] font-black uppercase tracking-widest">Sentiment</span>
           </div>
-          <p className="text-sm font-black text-white">{analysis.sentiment}</p>
+          <p className="text-[12px] font-black text-white">{analysis.sentiment}</p>
         </div>
       </div>
 
-      {/* Summary Content */}
       <div className="space-y-3">
         <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-          <MessageCircle size={12} /> Neural Summary
+          <MessageCircle size={12} /> Intelligence Abstract
         </h3>
-        <p className="text-[12px] text-slate-300 leading-relaxed bg-white/[0.02] p-4 rounded-2xl border border-white/[0.05]">
+        <p className="text-[11px] text-slate-300 leading-relaxed bg-white/[0.01] p-4 rounded-2xl border border-white/[0.05] italic font-medium">
           {analysis.summary}
         </p>
       </div>
 
-      {/* Key Vectors */}
       <div className="space-y-3">
-        <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Strategic Vectors</h3>
+        <h3 className="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2">
+          <Target size={12} /> Neural Action Bridge
+        </h3>
         <div className="space-y-2">
-          {analysis.keyPoints.slice(0, 3).map((point, i) => (
-            <div key={i} className="flex gap-3 items-start bg-slate-900/40 p-3 rounded-xl border border-slate-800">
-              <span className="shrink-0 w-6 h-6 bg-slate-950 text-slate-500 text-[8px] flex items-center justify-center rounded-lg border border-slate-800 font-black">
-                {i + 1}
-              </span>
-              <p className="text-[11px] font-medium text-slate-400">
-                {point}
-              </p>
-            </div>
-          ))}
+          {analysis.suggestedTasks?.length > 0 ? (
+            analysis.suggestedTasks.map((task, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[6px] font-black px-1.5 py-0.5 rounded-full border uppercase tracking-tighter ${
+                      task.priority === 'High' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 
+                      task.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 
+                      'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                    }`}>
+                      {task.priority} Priority
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-300 leading-tight truncate">{task.description}</p>
+                </div>
+                <button 
+                  onClick={() => commitToMission(task, i)}
+                  disabled={committedIndices.has(i)}
+                  className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                    committedIndices.has(i) 
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 cursor-default' 
+                    : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95'
+                  }`}
+                >
+                  {committedIndices.has(i) ? <CheckCircle size={16} /> : <Plus size={16} />}
+                </button>
+              </div>
+            ))
+          ) : (
+             <p className="text-[10px] text-slate-600 italic text-center py-2">No direct actions identified.</p>
+          )}
         </div>
       </div>
     </div>

@@ -197,60 +197,64 @@ const FinanceIntelligenceView: React.FC = () => {
   }, [transactions]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-24">
+    <div className="flex flex-col h-full animate-in fade-in duration-700">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-            <Wallet size={24} />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-white">Neural Finance Lab</h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-2">
-              <Lock size={10} /> Local Encrypted Storage Active
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <select 
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            className="px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all"
-          >
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="INR">INR (₹)</option>
-            <option value="JPY">JPY (¥)</option>
-          </select>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            className="hidden" 
-            accept=".csv,.json,.txt,.pdf,image/*"
-          />
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={parsing}
-            className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 group relative"
-          >
-            {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-            Upload Statement
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-[7px] text-slate-400 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Supports PDF, Images, CSV, TXT
+      <div className="pb-6 pt-4 border-b border-slate-900/50 mb-8">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+              <Wallet size={24} />
             </div>
-          </button>
-          <button 
-            onClick={() => setShowAddTx(true)}
-            className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
-          >
-            <Plus size={14} /> Manual Entry
-          </button>
+            <div>
+              <h2 className="text-lg font-black text-white">Neural Finance Lab</h2>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-2">
+                <Lock size={10} /> Local Encrypted Storage Active
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <select 
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="px-3 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest outline-none focus:border-blue-500/50 transition-all"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="JPY">JPY (¥)</option>
+            </select>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              className="hidden" 
+              accept=".csv,.json,.txt,.pdf,image/*"
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={parsing}
+              className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 group relative"
+            >
+              {parsing ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              <span className="hidden sm:inline">Upload Statement</span>
+              <span className="sm:hidden">Upload</span>
+              <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-[7px] text-slate-400 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Supports PDF, Images, CSV, TXT
+              </div>
+            </button>
+            <button 
+              onClick={() => setShowAddTx(true)}
+              className="px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+            >
+              <Plus size={14} /> <span className="hidden sm:inline">Manual Entry</span><span className="sm:hidden">Add</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
+      <div className="space-y-8 pb-24">
+        {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-[2rem] space-y-2">
           <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Net Liquidity</p>
@@ -279,31 +283,34 @@ const FinanceIntelligenceView: React.FC = () => {
         </div>
       </div>
 
-      {/* Model Selection Grid */}
-      <div className="space-y-4">
+      {/* Model Selection Grid - Horizontal Scrollable */}
+      <div className="space-y-4 relative">
         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
           <Brain size={14} className="text-indigo-500" /> Intelligence Center
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {MODELS.map(model => (
-            <button
-              key={model.id}
-              onClick={() => runModel(model.id)}
-              disabled={loading || transactions.length === 0}
-              className={`flex flex-col items-center justify-center p-4 rounded-3xl border transition-all group ${
-                activeModel === model.id 
-                ? 'bg-slate-800 border-blue-500/50 shadow-lg' 
-                : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              <div className={`w-10 h-10 ${model.bg} ${model.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                <model.icon size={20} />
-              </div>
-              <span className="text-[9px] font-black text-center uppercase tracking-tight text-white leading-tight">
-                {model.name}
-              </span>
-            </button>
-          ))}
+        <div className="relative">
+          <div className="flex overflow-x-auto pb-4 gap-3 snap-x no-scrollbar">
+            {MODELS.map(model => (
+              <button
+                key={model.id}
+                onClick={() => runModel(model.id)}
+                disabled={loading || transactions.length === 0}
+                className={`flex flex-col items-center justify-center p-4 rounded-3xl border transition-all group shrink-0 w-32 snap-start ${
+                  activeModel === model.id 
+                  ? 'bg-slate-800 border-blue-500/50 shadow-lg' 
+                  : 'bg-slate-900/40 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className={`w-10 h-10 ${model.bg} ${model.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                  <model.icon size={20} />
+                </div>
+                <span className="text-[9px] font-black text-center uppercase tracking-tight text-white leading-tight">
+                  {model.name}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="absolute top-0 right-0 bottom-4 w-12 bg-gradient-to-l from-slate-950 to-transparent pointer-events-none" />
         </div>
       </div>
 
@@ -370,10 +377,10 @@ const FinanceIntelligenceView: React.FC = () => {
           )}
         </div>
         <div className="bg-slate-900/30 border border-slate-800 rounded-[2.5rem] overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-slate-800 bg-slate-950">
                   <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Date</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Description</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Category</th>
@@ -508,6 +515,7 @@ const FinanceIntelligenceView: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

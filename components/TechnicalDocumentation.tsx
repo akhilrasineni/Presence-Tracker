@@ -62,7 +62,7 @@ const TechnicalDocumentation: React.FC<TechnicalDocumentationProps> = ({ onClose
             <p className="text-slate-400 text-sm leading-relaxed">
               The entire intelligence layer is powered by the <strong>Gemini 3 Flash</strong> Large Language Model. Unlike traditional static algorithms, this system uses <strong>In-Context Learning (ICL)</strong> to adapt to your specific financial patterns without permanent weight updates, ensuring maximum privacy.
             </p>
-            <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-3xl space-y-4">
+            <div className="p-6 bg-slate-950 border border-slate-800 rounded-3xl space-y-4">
               <div className="flex items-center gap-2 text-[10px] font-black text-blue-400 uppercase tracking-widest">
                 <Lock size={14} /> Privacy Protocol
               </div>
@@ -86,6 +86,106 @@ const TechnicalDocumentation: React.FC<TechnicalDocumentationProps> = ({ onClose
               <p className="text-xs text-slate-400 leading-relaxed">
                 The system maintains a sliding window of historical transactions, enabling the detection of seasonality, drift, and long-term behavioral shifts.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Training & Privacy Section */}
+        <section className="space-y-8">
+          <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Model Training & Data Integrity</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-8 bg-slate-900/40 border border-slate-800 rounded-[3rem] space-y-4">
+              <h3 className="text-xl font-black text-white">Are models trained on my data?</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                <strong>No.</strong> The Gemini models used in this application are <strong>pre-trained</strong>. When you run an analysis, your data is sent as "context" within a prompt. The model uses this context to generate a response but does not "learn" from it in a way that updates its permanent knowledge base.
+              </p>
+              <div className="p-4 bg-blue-500/5 border border-blue-500/20 rounded-2xl">
+                <p className="text-[10px] text-blue-400 font-bold uppercase mb-1">Technical Reality</p>
+                <p className="text-[9px] text-slate-500">The weights of the neural network remain frozen. Your data is processed in a stateless environment and is purged from the model's active inference memory immediately after the response is generated.</p>
+              </div>
+            </div>
+
+            <div className="p-8 bg-slate-900/40 border border-slate-800 rounded-[3rem] space-y-4">
+              <h3 className="text-xl font-black text-white">How does model training work?</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                The models were trained by Google on massive, diverse datasets encompassing trillions of parameters. This training happened <strong>before</strong> the model was deployed to this app. 
+              </p>
+              <ul className="space-y-3 pt-2">
+                <li className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0" />
+                  <p className="text-[10px] text-slate-400"><strong>Pre-training:</strong> Learning general logic, math, and financial concepts.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1.5 shrink-0" />
+                  <p className="text-[10px] text-slate-400"><strong>Fine-tuning:</strong> Aligning the model to follow specific instructions and safety guidelines.</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5 shrink-0" />
+                  <p className="text-[10px] text-slate-400"><strong>In-Context Learning:</strong> What this app uses. Providing your data as a "reference" for the model to analyze without changing the model itself.</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Neural Training Chamber Section */}
+        <section className="space-y-8">
+          <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Neural Training Chamber & Custom Agents</h2>
+          <div className="p-8 bg-slate-900/40 border border-slate-800 rounded-[3rem] space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400">
+                    <Brain size={24} />
+                  </div>
+                  <h3 className="text-2xl font-black text-white">Custom Agent Framework</h3>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  The <strong>Neural Training Chamber</strong> allows you to bypass the limitations of static models by creating your own <strong>Custom Neural Agents</strong>. These agents are not just prompts; they are specialized inference pipelines that combine your specific mission objectives with locally-stored learned patterns.
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-slate-950 rounded-lg flex items-center justify-center text-blue-500 shrink-0 border border-slate-800">
+                      <Target size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-white uppercase tracking-tight">Mission Objective</p>
+                      <p className="text-[10px] text-slate-500">Defines the high-level reasoning goal for the agent (e.g., "Identify tax-deductible business expenses").</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-slate-950 rounded-lg flex items-center justify-center text-amber-500 shrink-0 border border-slate-800">
+                      <Zap size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-white uppercase tracking-tight">Learned Patterns</p>
+                      <p className="text-[10px] text-slate-500">Specific examples of input/output pairs that the model uses as "Ground Truth" during inference.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-6 bg-slate-950 border border-slate-800 rounded-3xl space-y-4">
+                  <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                    <RefreshCw size={14} className="text-blue-500" /> The "Training" Mechanism
+                  </h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    While the base model's weights remain frozen, the <strong>Neural Training Chamber</strong> utilizes <strong>Few-Shot Prompting</strong>. 
+                    When you "train" a pattern, it is stored in your <strong>Local Data Vault</strong>. 
+                    During execution, these patterns are injected into the model's context window as explicit instructions.
+                  </p>
+                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-2xl">
+                    <p className="text-[9px] text-indigo-400 font-bold uppercase mb-1">Inference Flow</p>
+                    <p className="text-[8px] text-slate-500 leading-tight">
+                      [Objective] + [Learned Patterns] + [Transaction Stream] = [Specialized Output]
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    This approach provides the benefits of fine-tuning (specialized behavior) with the privacy of local storage (no data ever leaves your device to update a global model).
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

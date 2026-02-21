@@ -24,8 +24,8 @@ import { motion } from 'motion/react';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
-  activeTab: 'calendar' | 'reminders' | 'finance';
-  onTabChange: (tab: 'calendar' | 'reminders' | 'finance') => void;
+  activeTab: 'calendar' | 'reminders' | 'finance' | 'training';
+  onTabChange: (tab: 'calendar' | 'reminders' | 'finance' | 'training') => void;
   onPurgeData: () => void;
 }
 
@@ -83,6 +83,14 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
           >
             <Wallet size={20} />
             <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Finance</span>
+          </button>
+
+          <button 
+            onClick={() => onTabChange('training')}
+            className={`p-4 rounded-2xl transition-all duration-300 relative group ${activeTab === 'training' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40' : 'text-slate-600 hover:text-slate-300 hover:bg-slate-900'}`}
+          >
+            <Brain size={20} />
+            <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Training</span>
           </button>
         </div>
 
@@ -245,6 +253,17 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
               <Wallet size={22} />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Finance</span>
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onTabChange('training')}
+            className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'training' ? 'text-indigo-500' : 'text-slate-600'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'training' ? 'bg-indigo-500/10' : ''}`}>
+              <Brain size={22} />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest">Training</span>
           </motion.button>
         </nav>
 

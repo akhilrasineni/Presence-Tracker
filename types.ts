@@ -89,3 +89,19 @@ export interface ChatMessage {
   timestamp: number;
   groundingUrls?: string[]; // New: URLs from search grounding
 }
+
+export interface LearnedPattern {
+  id: string;
+  input: string;
+  output: string;
+  timestamp: number;
+}
+
+export interface CustomModel {
+  id: string;
+  name: string;
+  objective: string;
+  createdAt: number;
+  patterns: LearnedPattern[];
+  lastResult?: any;
+}

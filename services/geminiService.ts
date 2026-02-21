@@ -299,3 +299,46 @@ export const runFinancialModel = async (task: string, transactions: Transaction[
 
   return JSON.parse(response.text || '{}');
 };
+
+export const runCustomModel = async (
+  modelName: string, 
+  objective: string, 
+  patterns: { input: string, output: string }[], 
+  transactions: Transaction[]
+): Promise<any> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  const currency = localStorage.getItem('rpt_currency') || 'USD';
+  
+  const patternContext = patterns.length > 0 
+    ? `\nLEARNED PATTERNS (Ground Truth for this model):\n${patterns.map(p => `Input: ${p.input}\nOutput: ${p.output}`).join('\n---\n')}`
+    : '';
+
+  const prompt = `You are a custom-trained financial intelligence model named "${modelName}".
+  Your primary objective is: ${objective}
+  ${patternContext}
+  
+  Current Currency: ${currency}
+  
+  Analyze these transactions based on your objective and learned patterns:
+  ${JSON.stringify(transactions.slice(0, 100))}
+  
+  Provide a detailed analysis in JSON format. 
+  Include:
+  1. "summary": A concise executive summary (markdown supported).
+  2. "data": A key-value object of primary metrics.
+  3. "chartData": (Optional) An array of objects for visualization.
+  4. "recommendations": (Optional) An array of strings.
+  
+  Use the currency symbol for ${currency} in your summary and text values. 
+  Ensure the JSON is valid and strictly follows the schema.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json"
+    }
+  });
+
+  return JSON.parse(response.text || '{}');
+};

@@ -74,7 +74,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
             className={`p-4 rounded-2xl transition-all duration-300 relative group ${activeTab === 'reminders' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40' : 'text-slate-600 hover:text-slate-300 hover:bg-slate-900'}`}
           >
             <Bell size={20} />
-            <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Missions</span>
+            <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Tasks</span>
           </button>
 
           <button 
@@ -241,7 +241,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
             <div className={`p-2 rounded-xl transition-colors ${activeTab === 'reminders' ? 'bg-indigo-500/10' : ''}`}>
               <Bell size={22} />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest">Missions</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Tasks</span>
           </motion.button>
 
           <motion.button 

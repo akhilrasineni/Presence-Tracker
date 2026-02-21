@@ -12,18 +12,23 @@ import {
   Database,
   Download,
   MoreVertical,
-  ShieldCheck
+  ShieldCheck,
+  Wallet,
+  Brain,
+  LayoutDashboard
 } from 'lucide-react';
+
+import TechnicalDocumentation from './TechnicalDocumentation';
 
 interface SidebarLayoutProps {
   children: React.ReactNode;
-  activeTab: 'calendar' | 'reminders';
-  onTabChange: (tab: 'calendar' | 'reminders') => void;
+  activeTab: 'calendar' | 'reminders' | 'finance';
+  onTabChange: (tab: 'calendar' | 'reminders' | 'finance') => void;
   onPurgeData: () => void;
 }
 
 const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTabChange, onPurgeData }) => {
-  const [showHandbook, setShowHandbook] = useState(false);
+  const [showFullDocs, setShowFullDocs] = useState(false);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showVault, setShowVault] = useState(false);
@@ -45,7 +50,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full w-full bg-slate-950 text-slate-200 overflow-hidden font-inter">
+    <div className="flex flex-col md:flex-row h-full w-full bg-slate-950 text-slate-200 overflow-hidden font-sans">
       
       {/* DESKTOP SIDEBAR */}
       <nav className="hidden md:flex flex-col items-center py-6 border-r border-slate-900 bg-slate-950/50 backdrop-blur-xl z-[100] shrink-0 w-20 lg:w-24">
@@ -68,6 +73,14 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
           >
             <Bell size={20} />
             <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Missions</span>
+          </button>
+
+          <button 
+            onClick={() => onTabChange('finance')}
+            className={`p-4 rounded-2xl transition-all duration-300 relative group ${activeTab === 'finance' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/40' : 'text-slate-600 hover:text-slate-300 hover:bg-slate-900'}`}
+          >
+            <Wallet size={20} />
+            <span className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-[8px] font-black uppercase rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">Finance</span>
           </button>
         </div>
 
@@ -112,7 +125,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
           
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => setShowHandbook(true)}
+              onClick={() => setShowFullDocs(true)}
               className="p-2.5 text-slate-500 hover:text-blue-400 transition-colors bg-slate-900/50 rounded-xl md:bg-transparent"
             >
               <HelpCircle size={18} />
@@ -218,29 +231,21 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Missions</span>
           </button>
+
+          <button 
+            onClick={() => onTabChange('finance')}
+            className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'finance' ? 'text-emerald-500' : 'text-slate-600'}`}
+          >
+            <div className={`p-2 rounded-xl ${activeTab === 'finance' ? 'bg-emerald-500/10' : ''}`}>
+              <Wallet size={22} />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest">Finance</span>
+          </button>
         </nav>
 
-        {/* System Handbook Modal */}
-        {showHandbook && (
-          <div className="fixed inset-0 z-[500] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in">
-            <div className="bg-[#0f172a] border border-slate-800 w-full max-w-[360px] rounded-[2.5rem] p-8 shadow-2xl relative">
-              <div className="flex justify-between items-start mb-6">
-                <h3 className="text-xl font-black text-white">Strategy Handbook</h3>
-                <button onClick={() => setShowHandbook(false)} className="p-2 text-slate-500 hover:text-white"><X size={20} /></button>
-              </div>
-              <div className="space-y-4 text-xs md:text-sm text-slate-400 leading-relaxed">
-                <p><strong className="text-white">Local Vault:</strong> Secure JSON exports for offline ownership.</p>
-                <p><strong className="text-white">Presence:</strong> Hard-coded logic for office compliance tracking.</p>
-                <p><strong className="text-white">Neural Lens:</strong> Optional AI-powered summarization tool.</p>
-              </div>
-              <button 
-                onClick={() => setShowHandbook(false)}
-                className="w-full mt-8 py-4 bg-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl shadow-blue-600/20 active:scale-95"
-              >
-                Acknowledged
-              </button>
-            </div>
-          </div>
+        {/* Technical Documentation Full View */}
+        {showFullDocs && (
+          <TechnicalDocumentation onClose={() => setShowFullDocs(false)} />
         )}
 
         {/* Purge Confirmation */}

@@ -8,6 +8,7 @@ import AnalyticsView from './components/AnalyticsView';
 import BreakReminder from './components/BreakReminder';
 import MissionPlanner from './components/MissionPlanner';
 import ChatView from './components/ChatView';
+import FinanceIntelligenceView from './components/FinanceIntelligenceView';
 import { PresenceRecord, Reminder, PageContent, AnalysisResult } from './types';
 import { analyzePage } from './services/geminiService';
 import { getActiveTabContent } from './services/tabService';
@@ -21,7 +22,7 @@ const STORAGE_KEYS = {
 };
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'calendar' | 'reminders'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'reminders' | 'finance'>('calendar');
   const [dashboardMode, setDashboardMode] = useState<'analysis' | 'analytics' | 'chat'>('analysis');
   const [isInitializing, setIsInitializing] = useState(true);
   
@@ -279,6 +280,10 @@ const App: React.FC = () => {
               reminders={reminders} 
               onUpdate={(items) => { setReminders(items); localStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify(items)); }} 
             />
+          )}
+
+          {activeTab === 'finance' && (
+            <FinanceIntelligenceView />
           )}
         </div>
       </SidebarLayout>

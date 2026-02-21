@@ -4,6 +4,8 @@ import { ChatMessage, PageContent } from '../types';
 import { chatWithPage } from '../services/geminiService';
 import { Send, User, Bot, Loader2, Info, Trash2, Globe, ExternalLink } from 'lucide-react';
 
+import NeuralLoader from './NeuralLoader';
+
 interface ChatViewProps {
   pageContent: PageContent;
 }
@@ -121,8 +123,11 @@ const ChatView: React.FC<ChatViewProps> = ({ pageContent }) => {
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-3xl rounded-tl-none animate-pulse">
-              <Loader2 size={16} className="animate-spin text-blue-500" />
+            <div className="bg-slate-900/50 border border-slate-800 p-4 rounded-3xl rounded-tl-none w-full">
+              <NeuralLoader 
+                message="Neural Processing" 
+                submessage="Analyzing Page Context" 
+              />
             </div>
           </div>
         )}

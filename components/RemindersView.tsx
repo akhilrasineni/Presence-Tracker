@@ -3,6 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { Reminder } from '../types';
 import { Plus, Trash2, Clock, CheckCircle2, Circle, X, Info, Filter, Zap, Target } from 'lucide-react';
 
+import { motion } from 'motion/react';
+
 interface RemindersViewProps {
   reminders: Reminder[];
   onUpdate: (items: Reminder[]) => void;
@@ -105,17 +107,20 @@ const RemindersView: React.FC<RemindersViewProps> = ({ reminders, onUpdate }) =>
             <p className="text-slate-600 text-[10px] font-black uppercase tracking-widest opacity-50">Zero Targets Found</p>
           </div>
         ) : (
-          filteredReminders.map(r => {
+          filteredReminders.map((r, idx) => {
             const pressure = getPressureStatus(r.dateTime);
             const isCritical = pressure === 'critical' && !r.completed;
 
             return (
-              <button 
+              <motion.button 
                 key={r.id} 
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
                 onClick={() => setInspectingReminder(r)}
                 className={`group relative aspect-square rounded-[1.8rem] border transition-all duration-500 flex flex-col items-center justify-center gap-2 p-4 ${
                   r.completed 
-                  ? 'bg-slate-950/20 border-slate-900 opacity-40 grayscale' 
+                  ? 'bg-slate-900/40 border-slate-800 opacity-60 grayscale' 
                   : isCritical
                   ? 'bg-red-500/10 border-red-500/40 hover:bg-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)] active:scale-95'
                   : 'bg-blue-600/5 border-blue-500/10 hover:border-blue-500/40 hover:bg-blue-600/10 active:scale-95 shadow-lg hover:shadow-blue-500/5'
@@ -125,18 +130,18 @@ const RemindersView: React.FC<RemindersViewProps> = ({ reminders, onUpdate }) =>
                   <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-ping" />
                 )}
                 
-                <div className={`transition-all duration-500 ${r.completed ? 'text-slate-800' : isCritical ? 'text-red-500' : 'text-blue-500 group-hover:scale-110'}`}>
+                <div className={`transition-all duration-500 ${r.completed ? 'text-slate-400' : isCritical ? 'text-red-500' : 'text-blue-500 group-hover:scale-110'}`}>
                   {r.completed ? <CheckCircle2 size={24} /> : isCritical ? <Zap size={24} /> : <Circle size={24} />}
                 </div>
                 <div className="text-center w-full px-1 overflow-hidden">
-                  <p className={`text-[9px] md:text-[10px] font-black truncate w-full uppercase tracking-tight ${r.completed ? 'text-slate-700' : 'text-slate-100'}`}>
+                  <p className={`text-[9px] md:text-[10px] font-black truncate w-full uppercase tracking-tight ${r.completed ? 'text-slate-400' : 'text-slate-100'}`}>
                     {r.title}
                   </p>
-                  <p className={`text-[7px] font-black uppercase tracking-tighter mt-1 opacity-60 ${isCritical ? 'text-red-400' : 'text-slate-500'}`}>
+                  <p className={`text-[7px] font-black uppercase tracking-tighter mt-1 ${r.completed ? 'text-slate-600' : isCritical ? 'text-red-400' : 'text-slate-500'}`}>
                     {new Date(r.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-              </button>
+              </motion.button>
             )
           })
         )}

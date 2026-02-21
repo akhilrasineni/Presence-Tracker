@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { AnalysisResult, PageContent, ExtractedTask, Reminder } from '../types';
 import { Clock, BarChart3, MessageCircle, Globe, Sparkles, Loader2, ShieldAlert, CheckCircle, Info, AlertTriangle, Fingerprint, Target, Plus, Database, FileText, Layout } from 'lucide-react';
 
+import NeuralLoader from './NeuralLoader';
+
 interface SummaryViewProps {
   analysis: AnalysisResult | null;
   loading: boolean;
@@ -48,16 +50,10 @@ const SummaryView: React.FC<SummaryViewProps> = ({ analysis, loading, content, o
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-4">
-        <div className="relative">
-          <Loader2 size={42} className="animate-spin text-blue-500 opacity-20" />
-          <Fingerprint size={18} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-400 animate-pulse" />
-        </div>
-        <div className="text-center">
-          <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.4em] animate-pulse">Transmitting to Neural Hub</p>
-          <p className="text-slate-600 text-[8px] font-bold mt-1">SECURE ENCRYPTED CHANNEL ACTIVE</p>
-        </div>
-      </div>
+      <NeuralLoader 
+        message="Transmitting to Neural Hub" 
+        submessage="SECURE ENCRYPTED CHANNEL ACTIVE" 
+      />
     );
   }
 

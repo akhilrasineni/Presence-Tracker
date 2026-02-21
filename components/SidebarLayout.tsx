@@ -20,6 +20,8 @@ import {
 
 import TechnicalDocumentation from './TechnicalDocumentation';
 
+import { motion } from 'motion/react';
+
 interface SidebarLayoutProps {
   children: React.ReactNode;
   activeTab: 'calendar' | 'reminders' | 'finance';
@@ -212,35 +214,38 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, activeTab, onTa
 
         {/* MOBILE BOTTOM NAVIGATION */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-slate-950/80 backdrop-blur-2xl border-t border-slate-900 px-6 flex items-center justify-around z-[100] pb-safe">
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
             onClick={() => onTabChange('calendar')}
             className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'calendar' ? 'text-blue-500' : 'text-slate-600'}`}
           >
-            <div className={`p-2 rounded-xl ${activeTab === 'calendar' ? 'bg-blue-500/10' : ''}`}>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'calendar' ? 'bg-blue-500/10' : ''}`}>
               <CalendarDays size={22} />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Hub</span>
-          </button>
+          </motion.button>
 
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
             onClick={() => onTabChange('reminders')}
             className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'reminders' ? 'text-indigo-500' : 'text-slate-600'}`}
           >
-            <div className={`p-2 rounded-xl ${activeTab === 'reminders' ? 'bg-indigo-500/10' : ''}`}>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'reminders' ? 'bg-indigo-500/10' : ''}`}>
               <Bell size={22} />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Missions</span>
-          </button>
+          </motion.button>
 
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
             onClick={() => onTabChange('finance')}
             className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'finance' ? 'text-emerald-500' : 'text-slate-600'}`}
           >
-            <div className={`p-2 rounded-xl ${activeTab === 'finance' ? 'bg-emerald-500/10' : ''}`}>
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'finance' ? 'bg-emerald-500/10' : ''}`}>
               <Wallet size={22} />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest">Finance</span>
-          </button>
+          </motion.button>
         </nav>
 
         {/* Technical Documentation Full View */}

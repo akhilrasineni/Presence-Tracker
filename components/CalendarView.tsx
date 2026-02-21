@@ -138,9 +138,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
                 const record = getDayRecord(day);
                 const isToday = day === today;
                 
-                let colorClass = "bg-transparent border-slate-800/40 text-slate-600";
+                let colorClass = "bg-transparent border-slate-800/60 text-slate-400";
                 if (status === 'weekend') {
-                  colorClass = "bg-slate-950/50 border-dashed border-slate-800/10 text-slate-700 cursor-not-allowed";
+                  colorClass = "bg-slate-950/50 border-dashed border-slate-800/20 text-slate-600 cursor-not-allowed";
                 } else if (status === 'office') {
                   colorClass = "bg-blue-600/30 border-blue-500 text-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.1)]";
                 } else if (status === 'planned') {
@@ -185,7 +185,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ records, onUpdate, goal, se
               })}
             </div>
 
-            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[8px] font-black uppercase tracking-widest text-slate-600 border-t border-slate-800/50 pt-6">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[8px] font-black uppercase tracking-widest text-slate-400 border-t border-slate-800/50 pt-6">
               <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500" /> Office</div>
               <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full border border-dashed border-blue-500" /> Planned</div>
               <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-purple-500/50" /> Remote</div>

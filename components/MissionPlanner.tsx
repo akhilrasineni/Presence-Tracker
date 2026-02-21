@@ -122,7 +122,7 @@ const MissionPlanner: React.FC<MissionPlannerProps> = ({ onPlanConfirmed, existi
                   className={`flex flex-col items-center justify-center py-5 md:py-6 rounded-2xl border transition-all relative group/btn ${
                     isSelected 
                     ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/20 scale-[1.02] z-10' 
-                    : 'bg-slate-950 border-slate-800/80 text-slate-600 hover:border-slate-700 hover:bg-slate-900'
+                    : 'bg-slate-950 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
                   }`}
                 >
                   <span className={`text-[10px] md:text-xs font-black uppercase tracking-tighter ${isSelected ? 'scale-110' : ''}`}>

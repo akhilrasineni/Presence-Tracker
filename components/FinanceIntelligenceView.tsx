@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 
 import ModelResultRenderer from './ModelResultRenderer';
+import NeuralLoader from './NeuralLoader';
 
 const MODELS = [
   { id: 'categorization', name: 'Expense Categorization', icon: PieChart, color: 'text-blue-400', bg: 'bg-blue-500/10' },
@@ -227,7 +228,7 @@ const FinanceIntelligenceView: React.FC = () => {
             ref={fileInputRef} 
             onChange={handleFileUpload} 
             className="hidden" 
-            accept=".csv,.json,.txt"
+            accept=".csv,.json,.txt,.pdf,image/*"
           />
           <button 
             onClick={() => fileInputRef.current?.click()}
@@ -298,13 +299,23 @@ const FinanceIntelligenceView: React.FC = () => {
               <div className={`w-10 h-10 ${model.bg} ${model.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                 <model.icon size={20} />
               </div>
-              <span className="text-[8px] font-black text-center uppercase tracking-tighter text-slate-400 leading-tight">
+              <span className="text-[9px] font-black text-center uppercase tracking-tight text-white leading-tight">
                 {model.name}
               </span>
             </button>
           ))}
         </div>
       </div>
+
+      {/* Loading State Overlay */}
+      {(loading || parsing) && (
+        <div className="py-12 bg-slate-900/20 border border-slate-800/50 rounded-[2.5rem] backdrop-blur-sm">
+          <NeuralLoader 
+            message={parsing ? "Extracting Multimodal Data" : "Neural Computation in Progress"} 
+            submessage={parsing ? "OCR & Structure Mapping Active" : "Analyzing Financial Vectors"}
+          />
+        </div>
+      )}
 
       {/* Model Result Display */}
       {modelResult && activeModel && (
